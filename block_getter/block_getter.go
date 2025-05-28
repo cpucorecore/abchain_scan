@@ -3,6 +3,7 @@ package block_getter
 import (
 	"abchain_scan/cache"
 	"abchain_scan/config"
+	"abchain_scan/http_client"
 	"abchain_scan/log"
 	"abchain_scan/metrics"
 	"abchain_scan/sequencer"
@@ -175,12 +176,12 @@ func (bg *blockGetter) GetStartBlockNumber(startBlockNumber uint64) uint64 {
 		return finishedBlock + 1
 	}
 
-	//newestBlockNumber, err := bg.ethClient.BlockNumber(bg.ctx)
-	//if err != nil {
-	//	log.Logger.Fatal("ethClient.BlockNumber() err", zap.Error(err))
-	//}
+	newestBlockNumber, err := http_client.GetLatestBlockNumber(config.G.Chain.Endpoint)
+	if err != nil {
+		log.Logger.Fatal("ethClient.BlockNumber() err", zap.Error(err))
+	}
 
-	return 67482900
+	return newestBlockNumber
 }
 
 func (bg *blockGetter) setHeaderHeight(headerHeight uint64) {
@@ -226,11 +227,11 @@ func (bg *blockGetter) reconnectWithBackoff() (ethereum.Subscription, <-chan err
 }
 
 func (bg *blockGetter) startSubscribeNewHead() {
-	//headerHeight, err := bg.ethClient.BlockNumber(bg.ctx)
-	//if err != nil {
-	//	log.Logger.Fatal("HeightBigInt() err", zap.Error(err))
-	//}
-	bg.setHeaderHeight(67482900)
+	headerHeight, err := http_client.GetLatestBlockNumber(config.G.Chain.Endpoint)
+	if err != nil {
+		log.Logger.Fatal("HeightBigInt() err", zap.Error(err))
+	}
+	bg.setHeaderHeight(headerHeight)
 
 	sub, errChan, err := bg.subscribeNewHead()
 	if err != nil {
@@ -289,13 +290,12 @@ func (bg *blockGetter) dispatchRange(from, to uint64) (stopped bool, nextBlock u
 }
 
 func (bg *blockGetter) StartDispatch(startBlockNumber uint64) {
-	//bg.startSubscribeNewHead()
+	bg.startSubscribeNewHead()
 
 	go func() {
 		cur := startBlockNumber
 		for {
 			headerHeight := bg.getHeaderHeight()
-			headerHeight = 67482900
 			if headerHeight < cur {
 				time.Sleep(100 * time.Millisecond)
 				continue

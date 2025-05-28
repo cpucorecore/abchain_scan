@@ -1,6 +1,7 @@
 package service
 
 import (
+	"abchain_scan/abi/erc20"
 	uniswapv2 "abchain_scan/abi/uniswap/v2"
 	"abchain_scan/config"
 	"abchain_scan/metrics"
@@ -17,7 +18,6 @@ import (
 )
 
 var (
-	ErrUnpackerNotFound  = errors.New("unpacker not found")
 	ErrOutputEmpty       = errors.New("output is empty")
 	ErrWrongOutputLength = errors.New("wrong output length")
 	ErrReserve0NotBigInt = errors.New("reverse0 is not *big.Int")
@@ -83,10 +83,68 @@ func (c *ContractCaller) CallContract(req *CallContractReq) ([]byte, error) {
 	}, c.retryParams.Attempts, c.retryParams.Delay, retry.Context(ctxWithTimeout))
 }
 
-func (c *ContractCaller) queryValues(address *common.Address, name string, outputLength int) (map[string]interface{}, error) {
+func (c *ContractCaller) getString(address *common.Address, method string) (string, error) {
 	req := &CallContractReq{
 		Address: address,
-		Data:    Name2Data[name], // TODO check
+		Data:    Name2Data[method],
+	}
+
+	bytes, err := c.CallContract(req)
+	if err != nil {
+		return "", err
+	}
+
+	if len(bytes) == 0 {
+		return "", ErrOutputEmpty
+	}
+
+	var stringValue string
+	err = erc20.Abi.Unpack(&stringValue, method, bytes)
+	if err != nil {
+		return "", err
+	}
+
+	return stringValue, nil
+}
+
+func (c *ContractCaller) CallName(address *common.Address) (string, error) {
+	return c.getString(address, "name")
+}
+
+func (c *ContractCaller) CallSymbol(address *common.Address) (string, error) {
+	return c.getString(address, "symbol")
+}
+
+func (c *ContractCaller) CallDecimals(address *common.Address) (int, error) {
+	method := "decimals"
+	req := &CallContractReq{
+		Address: address,
+		Data:    Name2Data[method],
+	}
+
+	bytes, err := c.CallContract(req)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(bytes) == 0 {
+		return 0, ErrOutputEmpty
+	}
+
+	var value uint8
+	err = erc20.Abi.Unpack(&value, method, bytes)
+	if err != nil {
+		return 0, err
+	}
+
+	return int(value), nil
+}
+
+func (c *ContractCaller) CallTotalSupply(address *common.Address) (*big.Int, error) {
+	method := "totalSupply"
+	req := &CallContractReq{
+		Address: address,
+		Data:    Name2Data[method],
 	}
 
 	bytes, err := c.CallContract(req)
@@ -98,73 +156,45 @@ func (c *ContractCaller) queryValues(address *common.Address, name string, outpu
 		return nil, ErrOutputEmpty
 	}
 
-	upk, ok := Name2Unpacker[name]
-	if !ok {
-		return nil, ErrUnpackerNotFound
-	}
-
-	values, unpackErr := upk.Unpack(name, bytes, outputLength)
-	if unpackErr != nil {
-		return nil, unpackErr
-	}
-
-	return values, nil
-}
-
-func (c *ContractCaller) queryString(address *common.Address, name string) (string, error) {
-	values, err := c.queryValues(address, name, 1)
-	if err != nil {
-		return "", err
-	}
-	return ParseString(values[""])
-}
-
-func (c *ContractCaller) CallName(address *common.Address) (string, error) {
-	return c.queryString(address, "name")
-}
-
-func (c *ContractCaller) CallSymbol(address *common.Address) (string, error) {
-	return c.queryString(address, "symbol")
-}
-
-func (c *ContractCaller) queryInt(address *common.Address, name string) (int, error) {
-	values, err := c.queryValues(address, name, 1)
-	if err != nil {
-		return 0, err
-	}
-	return ParseInt(values[""])
-}
-
-func (c *ContractCaller) CallDecimals(address *common.Address) (int, error) {
-	return c.queryInt(address, "decimals")
-}
-
-func (c *ContractCaller) queryBigInt(address *common.Address, name string) (*big.Int, error) {
-	values, err := c.queryValues(address, name, 1)
+	var value *big.Int
+	err = erc20.Abi.Unpack(&value, method, bytes)
 	if err != nil {
 		return nil, err
 	}
-	return ParseBigInt(values[""])
+
+	return value, nil
 }
 
-func (c *ContractCaller) CallTotalSupply(address *common.Address) (*big.Int, error) {
-	return c.queryBigInt(address, "totalSupply")
-}
-
-func (c *ContractCaller) queryAddress(address *common.Address, name string) (common.Address, error) {
-	values, err := c.queryValues(address, name, 1)
-	if err != nil {
-		return types.ZeroAddress, err
+func (c *ContractCaller) getAddress(address *common.Address, method string) (*common.Address, error) {
+	req := &CallContractReq{
+		Address: address,
+		Data:    Name2Data[method],
 	}
-	return ParseAddress(values[""])
+
+	bytes, err := c.CallContract(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(bytes) == 0 {
+		return nil, ErrOutputEmpty
+	}
+
+	var value common.Address
+	err = uniswapv2.PairAbi.Unpack(&value, method, bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return &value, nil
 }
 
-func (c *ContractCaller) CallToken0(address *common.Address) (common.Address, error) {
-	return c.queryAddress(address, "token0")
+func (c *ContractCaller) CallToken0(address *common.Address) (*common.Address, error) {
+	return c.getAddress(address, "token0")
 }
 
-func (c *ContractCaller) CallToken1(address *common.Address) (common.Address, error) {
-	return c.queryAddress(address, "token1")
+func (c *ContractCaller) CallToken1(address *common.Address) (*common.Address, error) {
+	return c.getAddress(address, "token1")
 }
 
 /*
@@ -183,24 +213,13 @@ func (c *ContractCaller) CallGetPair(factoryAddress, token0Address, token1Addres
 		return types.ZeroAddress, ErrOutputEmpty
 	}
 
-	values, unpackErr := UniswapV2FactoryUnpacker.Unpack("getPair", bytes, 1)
-	if unpackErr != nil {
-		return types.ZeroAddress, unpackErr
+	var value common.Address
+	err = uniswapv2.FactoryAbi.Unpack(&value, "getPair", bytes)
+	if err != nil {
+		return types.ZeroAddress, err
 	}
 
-	if len(values) != 1 {
-		return types.ZeroAddress, ErrWrongOutputLength
-	}
-
-	return ParseAddress(values[""])
-}
-
-/*
-CallFee
-for uniswap/pancake v3
-*/
-func (c *ContractCaller) CallFee(address *common.Address) (*big.Int, error) {
-	return c.queryBigInt(address, "fee")
+	return value, nil
 }
 
 /*

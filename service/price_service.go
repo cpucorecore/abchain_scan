@@ -2,6 +2,8 @@ package service
 
 import (
 	"abchain_scan/cache"
+	"abchain_scan/config"
+	"abchain_scan/http_client"
 	"abchain_scan/log"
 	"abchain_scan/metrics"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -56,13 +58,12 @@ func (ps *priceService) Start(startBlockNumber uint64) {
 
 	go func() {
 		for {
-			//headerBlockNumber, err := ps.ethClient.BlockNumber(context.Background())
-			//if err != nil {
-			//	log.Logger.Error("ethClient.HeightBigInt", zap.Error(err))
-			//	time.Sleep(time.Second)
-			//	continue
-			//}
-			headerBlockNumber := uint64(67482900)
+			headerBlockNumber, err := http_client.GetLatestBlockNumber(config.G.Chain.Endpoint)
+			if err != nil {
+				log.Logger.Error("ethClient.HeightBigInt", zap.Error(err))
+				time.Sleep(time.Second)
+				continue
+			}
 
 			for startBlockNumber <= headerBlockNumber {
 				ps.workPool.Submit(func() {

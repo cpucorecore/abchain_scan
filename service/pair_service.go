@@ -249,11 +249,11 @@ func (s *pairService) doGetPair(pairAddress common.Address) *types.Pair {
 
 	var (
 		token0Res struct {
-			address common.Address
+			address *common.Address
 			err     error
 		}
 		token1Res struct {
-			address common.Address
+			address *common.Address
 			err     error
 		}
 	)
@@ -282,7 +282,7 @@ func (s *pairService) doGetPair(pairAddress common.Address) *types.Pair {
 		return pair
 	}
 	pair.Token0Core = &types.TokenCore{
-		Address: token0Res.address,
+		Address: *token0Res.address,
 	}
 
 	if token1Res.err != nil {
@@ -295,7 +295,7 @@ func (s *pairService) doGetPair(pairAddress common.Address) *types.Pair {
 		return pair
 	}
 	pair.Token1Core = &types.TokenCore{
-		Address: token1Res.address,
+		Address: *token1Res.address,
 	}
 
 	metrics.GetPairDurationMs.Observe(float64(time.Since(now).Milliseconds()))
