@@ -94,7 +94,7 @@ func (ps *priceService) getNativeTokenPrice(blockNumber *big.Int) (decimal.Decim
 	metrics.CallContractArchiveDurationMs.Observe(float64(time.Since(now).Milliseconds()))
 
 	// TODO get pair info
-	USDCAmountDivWETHAmount := decimal.NewFromBigInt(reserve1, -6).Div(decimal.NewFromBigInt(reserve0, -18))
+	USDCAmountDivWETHAmount := decimal.NewFromBigInt(reserve0, -6).Div(decimal.NewFromBigInt(reserve1, -18))
 	ps.cache.SetPrice(blockNumber, USDCAmountDivWETHAmount)
 
 	return USDCAmountDivWETHAmount, nil

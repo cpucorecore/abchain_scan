@@ -9,8 +9,7 @@ import (
 )
 
 func TestPriceService_GetBNBPrice(t *testing.T) {
-	t.Skip()
-	c := cache.MockCache{}
+	c := cache.NewMockCache()
 
 	ethClient, err := ethclient.Dial(config.G.Chain.EndpointArchive)
 	if err != nil {
@@ -19,8 +18,8 @@ func TestPriceService_GetBNBPrice(t *testing.T) {
 
 	cc := NewContractCaller(ethClient, config.G.ContractCaller.Retry.GetRetryParams())
 
-	ps := NewPriceService(&c, cc, ethClient, 0)
-	price, err := ps.GetNativeTokenPrice(big.NewInt(22466005))
+	ps := NewPriceService(c, cc, ethClient, 0)
+	price, err := ps.GetNativeTokenPrice(big.NewInt(67492426))
 	if err != nil {
 		t.Fatal(err)
 	}

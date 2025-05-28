@@ -116,8 +116,8 @@ var (
 			AsyncFlushIntervalBySecond: 1,
 		},
 		Chain: &ChainConf{
-			Endpoint:        "https://base-rpc.publicnode.com",
-			EndpointArchive: "https://base-rpc.publicnode.com",
+			Endpoint:        "https://global.rpc.iot.ab.org",
+			EndpointArchive: "https://global.rpc.iot.ab.org",
 			WsEndpoint:      "wss://base-rpc.publicnode.com",
 		},
 		Redis: &RedisConf{

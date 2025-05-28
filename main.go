@@ -83,10 +83,10 @@ func main() {
 		log.Logger.Fatal("Failed to connect to the chain(http): %v", zap.Error(dialEthErr))
 	}
 
-	//ethClientArchive, dialEthErrArchive := ethclient.Dial(config.G.Chain.EndpointArchive)
-	//if dialEthErrArchive != nil {
-	//	log.Logger.Fatal("Failed to connect to the chain archive(http): %v", zap.Error(dialEthErrArchive))
-	//}
+	ethClientArchive, dialEthErrArchive := ethclient.Dial(config.G.Chain.EndpointArchive)
+	if dialEthErrArchive != nil {
+		log.Logger.Fatal("Failed to connect to the chain archive(http): %v", zap.Error(dialEthErrArchive))
+	}
 
 	wsEthClient, dialEthWsErr := ethclient.Dial(config.G.Chain.WsEndpoint)
 	if dialEthWsErr != nil {
@@ -103,9 +103,9 @@ func main() {
 	contractCaller := service.NewContractCaller(ethClient, config.G.ContractCaller.Retry.GetRetryParams())
 
 	pairService := service.NewPairService(cache, contractCaller)
-	//contractCallerArchive := service.NewContractCaller(ethClientArchive, config.G.ContractCaller.Retry.GetRetryParams())
-	//priceService := service.NewPriceService(cache, contractCallerArchive, ethClient, config.G.PriceService.PoolSize)
-	priceService := service.NewPriceServiceMock()
+	contractCallerArchive := service.NewContractCaller(ethClientArchive, config.G.ContractCaller.Retry.GetRetryParams())
+	priceService := service.NewPriceService(cache, contractCallerArchive, ethClient, config.G.PriceService.PoolSize)
+	//priceService := service.NewPriceServiceMock()
 	sequencerForBlockHandler := sequencer.NewSequencer()
 
 	topicRouter := parser.NewTopicRouter()

@@ -256,12 +256,12 @@ func (c *ContractCaller) GetReservesByBlockNumber(blockNumber *big.Int) (*big.In
 		return nil, nil, err
 	}
 
-	reserve0, ok0 := values[""].(*big.Int)
+	reserve0, ok0 := values["_reserve0"].(*big.Int)
 	if !ok0 {
 		return nil, nil, ErrReserve0NotBigInt
 	}
 
-	reserve1, ok1 := values[""].(*big.Int)
+	reserve1, ok1 := values["_reserve1"].(*big.Int)
 	if !ok1 {
 		return nil, nil, ErrReserve1NotBigInt
 	}
