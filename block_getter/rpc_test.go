@@ -9,7 +9,7 @@ import (
 )
 
 func Test_GetBlock(t *testing.T) {
-	ethCli, err := ethclient.Dial("http://47.88.26.228:8808")
+	ethCli, err := ethclient.Dial("http://47.251.86.106:8808")
 	require.NoError(t, err)
 	block, getBlockErr := ethCli.BlockByNumber(context.Background(), big.NewInt(67488764))
 	require.NoError(t, getBlockErr)

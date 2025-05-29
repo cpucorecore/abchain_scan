@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"abchain_scan/address_converter"
 	"abchain_scan/util"
 	"time"
 	"unicode/utf8"
@@ -66,4 +67,9 @@ func (t *Token) Normalize() *Token {
 		t.TotalSupply = "0"
 	}
 	return t
+}
+
+func (t *Token) ConvertABChainAddress() {
+	t.Address = address_converter.EthAddrStr2ABChainAddrStr(t.Address)
+	// TODO: Creator 0 address
 }

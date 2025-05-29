@@ -31,18 +31,19 @@ type BlockGetter interface {
 }
 
 type blockGetter struct {
-	ctx             context.Context
-	ethClient       *ethclient.Client
-	wsEthClient     *ethclient.Client
-	inputQueue      chan uint64
-	outputBuffer    chan *types.ParseBlockContext
-	workPool        *ants.Pool
-	cache           cache.BlockCache
-	stopped         SafeVar[bool]
-	blockHeaderChan chan *ethtypes.Header
-	blockSequencer  sequencer.Sequencer
-	headerHeight    SafeVar[uint64]
-	retryParams     *config.RetryParams
+	ctx                  context.Context
+	ethClient            *ethclient.Client
+	wsEthClient          *ethclient.Client
+	inputQueue           chan uint64
+	outputBuffer         chan *types.ParseBlockContext
+	workPool             *ants.Pool
+	cache                cache.BlockCache
+	stopped              SafeVar[bool]
+	blockHeaderChan      chan *ethtypes.Header
+	blockSequencer       sequencer.Sequencer
+	headerHeight         SafeVar[uint64]
+	retryParams          *config.RetryParams
+	getTxReceiptWorkPool *ants.Pool
 }
 
 func NewBlockGetter(ethClient *ethclient.Client,
@@ -56,17 +57,23 @@ func NewBlockGetter(ethClient *ethclient.Client,
 		log.Logger.Fatal("ants pool(BlockGetter) init err", zap.Error(err))
 	}
 
+	getTxReceiptWorkPool, err := ants.NewPool(config.G.BlockGetter.GetTxReceiptPoolSize)
+	if err != nil {
+		log.Logger.Fatal("ants pool(GetTxReceipt) init err", zap.Error(err))
+	}
+
 	return &blockGetter{
-		ctx:             context.Background(),
-		ethClient:       ethClient,
-		wsEthClient:     wsEthClient,
-		inputQueue:      make(chan uint64, config.G.BlockGetter.QueueSize),
-		outputBuffer:    make(chan *types.ParseBlockContext, 10),
-		workPool:        workPool,
-		cache:           cache,
-		blockHeaderChan: make(chan *ethtypes.Header, 100),
-		blockSequencer:  blockSequencer,
-		retryParams:     retryParams,
+		ctx:                  context.Background(),
+		ethClient:            ethClient,
+		wsEthClient:          wsEthClient,
+		inputQueue:           make(chan uint64, config.G.BlockGetter.QueueSize),
+		outputBuffer:         make(chan *types.ParseBlockContext, 10),
+		workPool:             workPool,
+		cache:                cache,
+		blockHeaderChan:      make(chan *ethtypes.Header, 100),
+		blockSequencer:       blockSequencer,
+		retryParams:          retryParams,
+		getTxReceiptWorkPool: getTxReceiptWorkPool,
 	}
 }
 
@@ -88,16 +95,25 @@ func (bg *blockGetter) getBlock(blockNumber uint64) (*types.ParseBlockContext, e
 	}
 
 	now = time.Now()
+	wg := &sync.WaitGroup{}
 	blockReceipts := make([]*ethtypes.Receipt, len(block.Transactions()))
 	for i, tx := range block.Transactions() {
-		txReceipt, err := bg.ethClient.TransactionReceipt(bg.ctx, tx.Hash())
-		if err != nil {
-			log.Logger.Error("TransactionReceipt() err", zap.Uint64("blockNumber", blockNumber), zap.Any("tx_hash", tx.Hash()), zap.Error(err))
-			return nil, err
-		}
-		blockReceipts[i] = txReceipt
+		wg.Add(1)
+		bg.getTxReceiptWorkPool.Submit(func() {
+			defer wg.Done()
+
+			log.Logger.Info("Get tx Receipt", zap.Uint64("blockNumber", blockNumber), zap.Any("tx_hash", tx.Hash()))
+			txReceipt, err := bg.ethClient.TransactionReceipt(bg.ctx, tx.Hash())
+			if err != nil {
+				log.Logger.Error("TransactionReceipt() err", zap.Uint64("blockNumber", blockNumber), zap.Any("tx_hash", tx.Hash()), zap.Error(err))
+			}
+			blockReceipts[i] = txReceipt
+		})
 	}
-	metrics.GetBlockReceiptsDurationMs.Observe(float64(time.Since(now).Milliseconds()))
+	wg.Wait()
+	duration := time.Since(now)
+	log.Logger.Info("Get BlockReceipts", zap.Uint64("blockNumber", blockNumber), zap.Duration("duration", duration))
+	metrics.GetBlockReceiptsDurationMs.Observe(float64(duration.Milliseconds()))
 
 	if getBlockErr != nil {
 		return nil, getBlockErr

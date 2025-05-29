@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"abchain_scan/address_converter"
 	"github.com/shopspring/decimal"
 	"time"
 )
@@ -46,4 +47,10 @@ func (p *Pair) Equal(p2 *Pair) bool {
 		return false
 	}
 	return true
+}
+
+func (p *Pair) ConvertABChainAddress() {
+	p.Address = address_converter.EthAddrStr2ABChainAddrStr(p.Address)
+	p.Token0 = address_converter.EthAddrStr2ABChainAddrStr(p.Token0)
+	p.Token1 = address_converter.EthAddrStr2ABChainAddrStr(p.Token1)
 }

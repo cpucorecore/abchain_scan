@@ -15,11 +15,17 @@ type BlockInfo struct {
 	PoolUpdateParameters []*PoolUpdateParameter
 }
 
-type BlockInfoOld struct {
-	BlockNumber            uint64
-	BlockAt                uint64
-	BnbPrice               string
-	Txs                    []*orm.Tx
-	PoolUpdatesV2          []*PoolUpdate
-	PoolUpdateParametersV3 []*PoolUpdateParameter
+func (b *BlockInfo) Convert() {
+	for _, tx := range b.Txs {
+		tx.ConvertABChainAddress()
+	}
+	for _, token := range b.NewTokens {
+		token.ConvertABChainAddress()
+	}
+	for _, pair := range b.NewPairs {
+		pair.ConvertABChainAddress()
+	}
+	for _, poolUpdate := range b.PoolUpdates {
+		poolUpdate.ConvertABChainAddress()
+	}
 }

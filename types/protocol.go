@@ -9,7 +9,7 @@ const (
 )
 
 const (
-	ProtocolNameUniswapV2 = "UniswapV2"
+	ProtocolNameUniswapV2 = "Newswap"
 	ProtocolNameUniswapV3 = "UniswapV3"
 	ProtocolNamePancakeV2 = "PancakeV2"
 	ProtocolNamePancakeV3 = "PancakeV3"

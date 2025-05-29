@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"abchain_scan/address_converter"
 	"abchain_scan/util"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
@@ -71,4 +72,11 @@ func (t *Tx) Equal(tx *Tx) bool {
 
 func (t *Tx) TableName() string {
 	return "tx"
+}
+
+func (t *Tx) ConvertABChainAddress() {
+	t.Maker = address_converter.EthAddrStr2ABChainAddrStr(t.Maker)
+	t.Token0Address = address_converter.EthAddrStr2ABChainAddrStr(t.Token0Address)
+	t.Token1Address = address_converter.EthAddrStr2ABChainAddrStr(t.Token1Address)
+	t.PairAddress = address_converter.EthAddrStr2ABChainAddrStr(t.PairAddress)
 }

@@ -5,6 +5,7 @@ go 1.24.2
 require (
 	github.com/IBM/sarama v1.45.1
 	github.com/avast/retry-go/v4 v4.6.1
+	github.com/btcsuite/btcutil v1.0.2
 	github.com/ethereum/go-ethereum v1.15.10
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/google/uuid v1.3.0

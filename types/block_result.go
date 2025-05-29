@@ -56,7 +56,7 @@ func (br *BlockResult) getAllEvents() []Event {
 }
 
 func mergePoolUpdates(poolUpdates []*PoolUpdate) []*PoolUpdate {
-	pairAddress2PoolUpdate := make(map[common.Address]*PoolUpdate)
+	pairAddress2PoolUpdate := make(map[string]*PoolUpdate)
 	for _, poolUpdate := range poolUpdates {
 		poolUpdate_, ok := pairAddress2PoolUpdate[poolUpdate.Address]
 		if ok {
@@ -142,60 +142,4 @@ func (br *BlockResult) GetKafkaMessage() *BlockInfo {
 	}
 
 	return block
-}
-
-func (br *BlockResult) GetOldKafkaMessageAndNewTokensPairs() (*BlockInfoOld, []*orm.Token, []*orm.Pair) {
-	events := br.getAllEvents()
-
-	txs := make([]*orm.Tx, 0, len(events))
-	uniswapNewPairs := make([]*Pair, 0, 10) // v2 PairCreated and v3 PoolCreated
-	poolUpdatesV2 := make([]*PoolUpdate, 0, 40)
-	poolUpdateParameters := make([]*PoolUpdateParameter, 0, 40)
-	for _, event := range events {
-		if event.IsCreatePair() {
-			uniswapNewPairs = append(uniswapNewPairs, event.GetPair())
-			continue
-		}
-
-		if event.CanGetTx() {
-			txs = append(txs, event.GetTx(br.NativeTokenPrice))
-		}
-
-		if event.CanGetPoolUpdate() {
-			poolUpdatesV2 = append(poolUpdatesV2, event.GetPoolUpdate())
-		}
-
-		if event.CanGetPoolUpdateParameter() {
-			poolUpdateParameters = append(poolUpdateParameters, event.GetPoolUpdateParameter())
-		}
-	}
-
-	// uniswapNewPairs have more infos than br.NewPairs
-	for _, pair := range uniswapNewPairs {
-		br.NewPairs[pair.Address] = pair
-	}
-
-	ormTokens := make([]*orm.Token, 0, len(br.NewTokens))
-	for _, token := range br.NewTokens {
-		ormTokens = append(ormTokens, token.GetOrmToken())
-	}
-
-	ormPairs := make([]*orm.Pair, 0, len(uniswapNewPairs))
-	for _, pair := range br.NewPairs {
-		ormPairs = append(ormPairs, pair.GetOrmPair())
-	}
-
-	poolUpdatesV2Merged := mergePoolUpdates(poolUpdatesV2)
-	poolUpdateParametersMerged := mergePoolUpdateParameters(poolUpdateParameters)
-
-	ethBlock := &BlockInfoOld{
-		BlockNumber:            br.Height,
-		BlockAt:                br.Timestamp,
-		BnbPrice:               br.NativeTokenPrice.String(),
-		Txs:                    txs,
-		PoolUpdatesV2:          poolUpdatesV2Merged,
-		PoolUpdateParametersV3: poolUpdateParametersMerged,
-	}
-
-	return ethBlock, ormTokens, ormPairs
 }

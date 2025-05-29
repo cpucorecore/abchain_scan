@@ -113,7 +113,6 @@ func (t *Token) Equal(token *Token) bool {
 func (t *Token) GetOrmToken() *orm.Token {
 	ormToken := &orm.Token{
 		Address:     t.Address.String(),
-		Creator:     t.Creator.String(),
 		Name:        t.Name,
 		Symbol:      t.Symbol,
 		Decimal:     t.Decimals,
@@ -122,6 +121,10 @@ func (t *Token) GetOrmToken() *orm.Token {
 		Block:       t.BlockNumber,
 		BlockAt:     t.BlockTime,
 		Program:     t.Program,
+	}
+
+	if t.Creator != ZeroAddress {
+		ormToken.Creator = t.Creator.String()
 	}
 
 	return ormToken.Normalize()

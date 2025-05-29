@@ -19,9 +19,9 @@ func (e *SyncEvent) GetPoolUpdate() *types.PoolUpdate {
 	pu := &types.PoolUpdate{
 		Program:       types.GetProtocolName(e.GetProtocolId()),
 		LogIndex:      e.LogIndex,
-		Address:       e.ContractAddress,
-		Token0Address: e.Pair.Token0Core.Address,
-		Token1Address: e.Pair.Token1Core.Address,
+		Address:       e.ContractAddress.String(),
+		Token0Address: e.Pair.Token0Core.Address.String(),
+		Token1Address: e.Pair.Token1Core.Address.String(),
 	}
 
 	pu.Token0Amount, pu.Token1Amount = ParseAmountsByPair(e.Amount0Wei, e.Amount1Wei, e.Pair)

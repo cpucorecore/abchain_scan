@@ -1,6 +1,7 @@
 package types
 
 import (
+	"abchain_scan/address_converter"
 	"abchain_scan/util"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/shopspring/decimal"
@@ -9,11 +10,17 @@ import (
 type PoolUpdate struct {
 	Program       string // TODO remove
 	LogIndex      uint
-	Address       common.Address
-	Token0Address common.Address
-	Token1Address common.Address
+	Address       string
+	Token0Address string
+	Token1Address string
 	Token0Amount  decimal.Decimal
 	Token1Amount  decimal.Decimal
+}
+
+func (u *PoolUpdate) ConvertABChainAddress() {
+	u.Address = address_converter.EthAddrStr2ABChainAddrStr(u.Address)
+	u.Token0Address = address_converter.EthAddrStr2ABChainAddrStr(u.Token0Address)
+	u.Token1Address = address_converter.EthAddrStr2ABChainAddrStr(u.Token1Address)
 }
 
 func (u *PoolUpdate) Equal(tx *PoolUpdate) bool {

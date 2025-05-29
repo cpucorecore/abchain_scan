@@ -27,10 +27,11 @@ type RedisConf struct {
 }
 
 type BlockGetterConf struct {
-	PoolSize         int       `json:"pool_size"`
-	QueueSize        int       `json:"queue_size"`
-	StartBlockNumber uint64    `json:"start_block_number"`
-	Retry            RetryConf `json:"retry"`
+	PoolSize             int       `json:"pool_size"`
+	QueueSize            int       `json:"queue_size"`
+	StartBlockNumber     uint64    `json:"start_block_number"`
+	Retry                RetryConf `json:"retry"`
+	GetTxReceiptPoolSize int       `json:"get_tx_receipt_pool_size"`
 }
 
 type BlockHandlerConf struct {
