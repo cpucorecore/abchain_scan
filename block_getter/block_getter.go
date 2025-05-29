@@ -81,6 +81,17 @@ func (bg *blockGetter) Commit(x sequencer.Sequenceable) {
 	bg.outputBuffer <- x.(*types.ParseBlockContext)
 }
 
+func (bg *blockGetter) getTxReceiptRetry(txHash common.Hash) (*ethtypes.Receipt, error) {
+	return retry.DoWithData(func() (*ethtypes.Receipt, error) {
+		txReceipt, err := bg.ethClient.TransactionReceipt(bg.ctx, txHash)
+		if err != nil {
+			log.Logger.Error("TransactionReceipt() err", zap.String("txHash", txHash.String()), zap.Error(err))
+			return nil, err
+		}
+		return txReceipt, err
+	}, bg.retryParams.Attempts, bg.retryParams.Delay)
+}
+
 func (bg *blockGetter) getBlock(blockNumber uint64) (*types.ParseBlockContext, error) {
 	var (
 		block       *ethtypes.Block
@@ -92,25 +103,39 @@ func (bg *blockGetter) getBlock(blockNumber uint64) (*types.ParseBlockContext, e
 	if getBlockErr == nil {
 		duration := time.Since(now)
 		metrics.GetBlockDurationMs.Observe(float64(duration.Milliseconds()))
+	} else {
+		log.Logger.Error("BlockByNumber() err", zap.Uint64("blockNumber", blockNumber), zap.Error(getBlockErr))
+		return nil, getBlockErr
 	}
 
 	now = time.Now()
 	wg := &sync.WaitGroup{}
+	var getTxReceiptErr error
+	mu := &sync.Mutex{}
 	blockReceipts := make([]*ethtypes.Receipt, len(block.Transactions()))
 	for i, tx := range block.Transactions() {
 		wg.Add(1)
 		bg.getTxReceiptWorkPool.Submit(func() {
 			defer wg.Done()
 
-			log.Logger.Info("Get tx Receipt", zap.Uint64("blockNumber", blockNumber), zap.Any("tx_hash", tx.Hash()))
-			txReceipt, err := bg.ethClient.TransactionReceipt(bg.ctx, tx.Hash())
+			txReceipt, err := bg.getTxReceiptRetry(tx.Hash())
 			if err != nil {
 				log.Logger.Error("TransactionReceipt() err", zap.Uint64("blockNumber", blockNumber), zap.Any("tx_hash", tx.Hash()), zap.Error(err))
+				mu.Lock()
+				getTxReceiptErr = err
+				mu.Unlock()
+				return
 			}
 			blockReceipts[i] = txReceipt
 		})
 	}
 	wg.Wait()
+
+	if getTxReceiptErr != nil {
+		log.Logger.Error("Get BlockReceipts err", zap.Uint64("blockNumber", blockNumber), zap.Error(getTxReceiptErr))
+		return nil, getTxReceiptErr
+	}
+
 	duration := time.Since(now)
 	if duration.Seconds() > 1 {
 		log.Logger.Info("Get BlockReceipts", zap.Uint64("blockNumber", blockNumber), zap.Duration("duration", duration))

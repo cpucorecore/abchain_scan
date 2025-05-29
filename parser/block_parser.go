@@ -219,7 +219,9 @@ func (p *blockParser) parseBlock(pbc *types.ParseBlockContext) {
 
 	duration := time.Since(now)
 	metrics.ParseBlockDurationMs.Observe(float64(duration.Milliseconds()))
-	log.Logger.Info(fmt.Sprintf("parse block %d duration %dms", pbc.HeightTime.HeightBigInt, duration.Milliseconds()))
+	if duration.Seconds() > 1 {
+		log.Logger.Info(fmt.Sprintf("parse block %d duration %dms", pbc.HeightTime.HeightBigInt, duration.Milliseconds()))
+	}
 
 	pbc.BlockResult = br
 	p.sequencer.CommitWithSequence(pbc, p)
