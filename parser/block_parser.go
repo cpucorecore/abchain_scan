@@ -245,7 +245,7 @@ func (p *blockParser) getPairByEvent(event types.Event) *types.PairWrap {
 }
 
 func (p *blockParser) commitBlockResult(blockResult *types.BlockResult) {
-	blockInfo := blockResult.GetKafkaMessage()
+	blockInfo := blockResult.GetKafkaMessage().ConvertABChainAddress()
 
 	now := time.Now()
 	err := p.dbService.AddTokens(blockInfo.NewTokens)

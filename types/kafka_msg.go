@@ -15,7 +15,7 @@ type BlockInfo struct {
 	PoolUpdateParameters []*PoolUpdateParameter
 }
 
-func (b *BlockInfo) Convert() {
+func (b *BlockInfo) ConvertABChainAddress() *BlockInfo {
 	for _, tx := range b.Txs {
 		tx.ConvertABChainAddress()
 	}
@@ -28,4 +28,5 @@ func (b *BlockInfo) Convert() {
 	for _, poolUpdate := range b.PoolUpdates {
 		poolUpdate.ConvertABChainAddress()
 	}
+	return b
 }
