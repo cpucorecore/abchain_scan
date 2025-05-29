@@ -112,7 +112,9 @@ func (bg *blockGetter) getBlock(blockNumber uint64) (*types.ParseBlockContext, e
 	}
 	wg.Wait()
 	duration := time.Since(now)
-	log.Logger.Info("Get BlockReceipts", zap.Uint64("blockNumber", blockNumber), zap.Duration("duration", duration))
+	if duration.Seconds() > 1 {
+		log.Logger.Info("Get BlockReceipts", zap.Uint64("blockNumber", blockNumber), zap.Duration("duration", duration))
+	}
 	metrics.GetBlockReceiptsDurationMs.Observe(float64(duration.Milliseconds()))
 
 	if getBlockErr != nil {
