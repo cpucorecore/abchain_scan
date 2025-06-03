@@ -21,9 +21,5 @@ func EthAddr2ABChainAddrStr(ethAddress common.Address) string {
 }
 
 func EthAddrStr2ABChainAddrStr(ethAddressHex string) string {
-	address := common.HexToAddress(ethAddressHex)
-	data := append(chainIdBytes, address.Bytes()...)
-	encoded := base58.CheckEncode(data, 0)
-	newAddress := newtonPrefix + encoded
-	return newAddress
+	return EthAddr2ABChainAddrStr(common.HexToAddress(ethAddressHex))
 }

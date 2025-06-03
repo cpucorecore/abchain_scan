@@ -78,6 +78,8 @@ func main() {
 		log.Logger.Fatal("load config file err", zap.Error(loadConfigErr))
 	}
 
+	log.InitLogger()
+
 	ethClient, dialEthErr := ethclient.Dial(config.G.Chain.Endpoint)
 	if dialEthErr != nil {
 		log.Logger.Fatal("Failed to connect to the chain(http): %v", zap.Error(dialEthErr))

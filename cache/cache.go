@@ -1,17 +1,18 @@
 package cache
 
 import (
+	"abchain_scan/chain"
 	"abchain_scan/log"
 	"abchain_scan/types"
 	"context"
 	"errors"
-	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/go-redis/redis/v8"
 	"github.com/patrickmn/go-cache"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 	"math/big"
+	"strconv"
 	"time"
 )
 
@@ -59,16 +60,21 @@ func NewTwoTierCache(redis *redis.Client) Cache {
 	}
 }
 
+var (
+	keyPrefixChainId = strconv.Itoa(chain.Id) + ":"
+	finishedBlockKey = keyPrefixChainId + "fb"
+)
+
 func PriceCacheKey(blockNumber *big.Int) string {
-	return fmt.Sprintf("P:%s", blockNumber.String())
+	return keyPrefixChainId + "P:" + blockNumber.String()
 }
 
 func TokenCacheKey(address common.Address) string {
-	return fmt.Sprintf("nt:%s", address.Hex())
+	return keyPrefixChainId + "t:" + address.String()
 }
 
 func PairCacheKey(address common.Address) string {
-	return fmt.Sprintf("npr:%s", address.Hex())
+	return keyPrefixChainId + "p:" + address.String()
 }
 
 func (c *twoTierCache) SetPrice(blockNumber *big.Int, price decimal.Decimal) {
@@ -185,11 +191,11 @@ func (c *twoTierCache) DelPair(address common.Address) {
 }
 
 func (c *twoTierCache) SetFinishedBlock(blockNumber uint64) {
-	c.redis.Set(c.ctx, "fb", blockNumber, 0)
+	c.redis.Set(c.ctx, finishedBlockKey, blockNumber, 0)
 }
 
 func (c *twoTierCache) GetFinishedBlock() uint64 {
-	v, err := c.redis.Get(c.ctx, "fb").Uint64()
+	v, err := c.redis.Get(c.ctx, finishedBlockKey).Uint64()
 	if err != nil {
 		if !errors.Is(err, redis.Nil) {
 			log.Logger.Error("redis get err", zap.Error(err))
