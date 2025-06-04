@@ -31,8 +31,8 @@ type BlockGetter interface {
 }
 
 type blockGetter struct {
+	ethClientPool        EthClientPool
 	ctx                  context.Context
-	ethClient            *ethclient.Client
 	wsEthClient          *ethclient.Client
 	inputQueue           chan uint64
 	outputBuffer         chan *types.ParseBlockContext
@@ -46,8 +46,7 @@ type blockGetter struct {
 	getTxReceiptWorkPool *ants.Pool
 }
 
-func NewBlockGetter(ethClient *ethclient.Client,
-	wsEthClient *ethclient.Client,
+func NewBlockGetter(wsEthClient *ethclient.Client,
 	cache cache.BlockCache,
 	blockSequencer sequencer.Sequencer,
 	retryParams *config.RetryParams,
@@ -62,10 +61,12 @@ func NewBlockGetter(ethClient *ethclient.Client,
 		log.Logger.Fatal("ants pool(GetTxReceipt) init err", zap.Error(err))
 	}
 
+	ethClientPool_ := NewEthClientPool(config.G.Chain.WsEndpoint, 20)
+
 	return &blockGetter{
 		ctx:                  context.Background(),
-		ethClient:            ethClient,
 		wsEthClient:          wsEthClient,
+		ethClientPool:        ethClientPool_,
 		inputQueue:           make(chan uint64, config.G.BlockGetter.QueueSize),
 		outputBuffer:         make(chan *types.ParseBlockContext, 10),
 		workPool:             workPool,
@@ -81,9 +82,9 @@ func (bg *blockGetter) Commit(x sequencer.Sequenceable) {
 	bg.outputBuffer <- x.(*types.ParseBlockContext)
 }
 
-func (bg *blockGetter) getTxReceiptRetry(txHash common.Hash) (*ethtypes.Receipt, error) {
+func (bg *blockGetter) getTxReceiptRetry(ethClient *ethclient.Client, txHash common.Hash) (*ethtypes.Receipt, error) {
 	return retry.DoWithData(func() (*ethtypes.Receipt, error) {
-		txReceipt, err := bg.ethClient.TransactionReceipt(bg.ctx, txHash)
+		txReceipt, err := ethClient.TransactionReceipt(bg.ctx, txHash)
 		if err != nil {
 			log.Logger.Error("TransactionReceipt() err", zap.String("txHash", txHash.String()), zap.Error(err))
 			return nil, err
@@ -99,7 +100,7 @@ func (bg *blockGetter) getBlock(blockNumber uint64) (*types.ParseBlockContext, e
 	)
 
 	now := time.Now()
-	block, getBlockErr = bg.ethClient.BlockByNumber(bg.ctx, big.NewInt(int64(blockNumber)))
+	block, getBlockErr = bg.ethClientPool.Get().BlockByNumber(bg.ctx, big.NewInt(int64(blockNumber)))
 	if getBlockErr == nil {
 		duration := time.Since(now)
 		metrics.GetBlockDurationMs.Observe(float64(duration.Milliseconds()))
@@ -115,10 +116,11 @@ func (bg *blockGetter) getBlock(blockNumber uint64) (*types.ParseBlockContext, e
 	blockReceipts := make([]*ethtypes.Receipt, len(block.Transactions()))
 	for i, tx := range block.Transactions() {
 		wg.Add(1)
+		ethClient := bg.ethClientPool.Get()
 		bg.getTxReceiptWorkPool.Submit(func() {
 			defer wg.Done()
 
-			txReceipt, err := bg.getTxReceiptRetry(tx.Hash())
+			txReceipt, err := bg.getTxReceiptRetry(ethClient, tx.Hash())
 			if err != nil {
 				log.Logger.Error("TransactionReceipt() err", zap.Uint64("blockNumber", blockNumber), zap.Any("tx_hash", tx.Hash()), zap.Error(err))
 				mu.Lock()

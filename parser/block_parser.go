@@ -114,13 +114,15 @@ func (p *blockParser) ParseBlockAsync(bw *types.ParseBlockContext) {
 
 func (p *blockParser) waitForNativeTokenPrice(blockNumber *big.Int) decimal.Decimal {
 	for {
-		bnbPrice, err := p.priceService.GetNativeTokenPrice(blockNumber)
+		price, err := p.priceService.GetNativeTokenPrice(blockNumber)
 		if err != nil {
 			log.Logger.Error("get price err", zap.Error(err), zap.Any("blockNumber", blockNumber))
 			time.Sleep(time.Millisecond * 100)
 			continue
 		}
-		return bnbPrice
+		floatPrice, _ := price.Float64()
+		metrics.NativeTokenPrice.Set(floatPrice)
+		return price
 	}
 }
 

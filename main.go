@@ -80,7 +80,7 @@ func main() {
 
 	log.InitLogger()
 
-	ethClient, dialEthErr := ethclient.Dial(config.G.Chain.Endpoint)
+	ethClient, dialEthErr := ethclient.Dial(config.G.Chain.WsEndpoint)
 	if dialEthErr != nil {
 		log.Logger.Fatal("Failed to connect to the chain(http): %v", zap.Error(dialEthErr))
 	}
@@ -127,7 +127,7 @@ func main() {
 	blockParser.Start(wg)
 
 	sequencerForBlockGetter := sequencer.NewSequencer()
-	blockGetter := block_getter.NewBlockGetter(ethClient, wsEthClient, cache, sequencerForBlockGetter, config.G.BlockGetter.Retry.GetRetryParams())
+	blockGetter := block_getter.NewBlockGetter(wsEthClient, cache, sequencerForBlockGetter, config.G.BlockGetter.Retry.GetRetryParams())
 	startBlockNumber := blockGetter.GetStartBlockNumber(config.G.BlockGetter.StartBlockNumber)
 	if startBlockNumber == 0 {
 		log.Logger.Fatal("start block number is zero")

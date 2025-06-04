@@ -18,6 +18,7 @@ type ChainConf struct {
 	Endpoint        string `json:"endpoint"`
 	EndpointArchive string `json:"endpoint_archive"`
 	WsEndpoint      string `json:"ws_endpoint"`
+	PoolSize        int    `json:"pool_size"`
 }
 
 type RedisConf struct {
@@ -120,6 +121,7 @@ var (
 			Endpoint:        "https://global.rpc.iot.ab.org",
 			EndpointArchive: "https://global.rpc.iot.ab.org",
 			WsEndpoint:      "wss://base-rpc.publicnode.com",
+			PoolSize:        10,
 		},
 		Redis: &RedisConf{
 			Addr:     "localhost:6379",

@@ -17,9 +17,10 @@ var (
 )
 
 var (
-	CurrentHeight = prometheus.NewGauge(prometheus.GaugeOpts{Name: "current_height"})
-	NewestHeight  = prometheus.NewGauge(prometheus.GaugeOpts{Name: "newest_height"})
-	TxCntByBlock  = prometheus.NewGauge(prometheus.GaugeOpts{Name: "tx_cnt_by_block"})
+	CurrentHeight    = prometheus.NewGauge(prometheus.GaugeOpts{Name: "current_height"})
+	NewestHeight     = prometheus.NewGauge(prometheus.GaugeOpts{Name: "newest_height"})
+	TxCntByBlock     = prometheus.NewGauge(prometheus.GaugeOpts{Name: "tx_cnt_by_block"})
+	NativeTokenPrice = prometheus.NewGauge(prometheus.GaugeOpts{Name: "native_token_price"})
 
 	GetBlockDurationMs = prometheus.NewSummary(prometheus.SummaryOpts{
 		Name:       "get_block_duration_ms",
@@ -133,6 +134,7 @@ func init() {
 	prometheus.MustRegister(CurrentHeight)
 	prometheus.MustRegister(NewestHeight)
 	prometheus.MustRegister(TxCntByBlock)
+	prometheus.MustRegister(NativeTokenPrice)
 
 	prometheus.MustRegister(GetBlockDurationMs)
 	prometheus.MustRegister(GetBlockReceiptsDurationMs)
