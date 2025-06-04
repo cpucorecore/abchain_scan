@@ -162,4 +162,5 @@ func main() {
 	log.Logger.Info("wait all block commited")
 	wg.Wait()
 	log.Logger.Info("all block commited")
+	log.Logger.Sync()
 }

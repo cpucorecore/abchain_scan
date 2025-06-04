@@ -67,14 +67,13 @@ func (p *ethClientPool) healthCheck() {
 }
 
 func (p *ethClientPool) checkAndReconnect() {
-	p.rwLock.Lock()
-	defer p.rwLock.Unlock()
-
 	for i, client := range p.clients {
 		if client == nil || !p.isClientHealthy(client) {
 			if newClient, err := ethclient.Dial(p.wsUrl); err == nil {
 				oldClient := p.clients[i]
+				p.rwLock.Lock()
 				p.clients[i] = newClient
+				p.rwLock.Unlock()
 				if oldClient != nil {
 					go oldClient.Close() // 异步关闭,避免阻塞
 				}
