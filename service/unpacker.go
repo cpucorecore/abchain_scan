@@ -1,7 +1,6 @@
 package service
 
 import (
-	"abchain_scan/abi/aerodrome"
 	"abchain_scan/abi/bep20"
 	"abchain_scan/abi/ds_token"
 	uniswapv2 "abchain_scan/abi/uniswap/v2"
@@ -69,10 +68,6 @@ var (
 
 	UniswapV3FactoryUnpacker = NewUnpacker([]*abi.ABI{
 		uniswapv3.FactoryAbi,
-	})
-
-	AerodromeFactoryUnpacker = NewUnpacker([]*abi.ABI{
-		aerodrome.FactoryAbi,
 	})
 
 	Name2Unpacker = map[string]Unpacker{

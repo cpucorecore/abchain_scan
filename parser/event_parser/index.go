@@ -2,8 +2,6 @@ package event_parser
 
 import (
 	"abchain_scan/abi"
-	"abchain_scan/abi/aerodrome"
-	pancakev3 "abchain_scan/abi/pancake/v3"
 	uniswapv2 "abchain_scan/abi/uniswap/v2"
 	uniswapv3 "abchain_scan/abi/uniswap/v3"
 	"github.com/ethereum/go-ethereum/common"
@@ -22,36 +20,12 @@ var (
 		},
 	}
 
-	poolCreatedEventParserAerodrome = &PairCreatedEventParser{
-		FactoryEventParser: FactoryEventParser{
-			Topic:                    aerodrome.PoolCreatedTopic0,
-			PossibleFactoryAddresses: abi.Topic2FactoryAddresses[aerodrome.PoolCreatedTopic0],
-			LogUnpacker: EthLogUnpacker{
-				AbiEvent:      aerodrome.PoolCreatedEvent,
-				TopicLen:      4,
-				DataUnpackLen: 2,
-			},
-		},
-	}
-
 	burnEventParser = &BurnEventParser{
 		PoolEventParser: PoolEventParser{
 			Topic:               uniswapv2.BurnTopic0,
 			PossibleProtocolIds: abi.Topic2ProtocolIds[uniswapv2.BurnTopic0],
 			ethLogUnpacker: EthLogUnpacker{
 				AbiEvent:      uniswapv2.BurnEvent,
-				TopicLen:      3,
-				DataUnpackLen: 2,
-			},
-		},
-	}
-
-	burnEventParserAerodrome = &BurnEventParser{
-		PoolEventParser: PoolEventParser{
-			Topic:               aerodrome.BurnTopic0,
-			PossibleProtocolIds: abi.Topic2ProtocolIds[aerodrome.BurnTopic0],
-			ethLogUnpacker: EthLogUnpacker{
-				AbiEvent:      aerodrome.BurnEvent,
 				TopicLen:      3,
 				DataUnpackLen: 2,
 			},
@@ -70,36 +44,12 @@ var (
 		},
 	}
 
-	swapEventParserAerodrome = &SwapEventParser{
-		PoolEventParser: PoolEventParser{
-			Topic:               aerodrome.SwapTopic0,
-			PossibleProtocolIds: abi.Topic2ProtocolIds[aerodrome.SwapTopic0],
-			ethLogUnpacker: EthLogUnpacker{
-				AbiEvent:      aerodrome.SwapEvent,
-				TopicLen:      3,
-				DataUnpackLen: 4,
-			},
-		},
-	}
-
 	syncEventParser = &SyncEventParser{
 		PoolEventParser: PoolEventParser{
 			Topic:               uniswapv2.SyncTopic0,
 			PossibleProtocolIds: abi.Topic2ProtocolIds[uniswapv2.SyncTopic0],
 			ethLogUnpacker: EthLogUnpacker{
 				AbiEvent:      uniswapv2.SyncEvent,
-				TopicLen:      1,
-				DataUnpackLen: 2,
-			},
-		},
-	}
-
-	syncEventParserAerodrome = &SyncEventParser{
-		PoolEventParser: PoolEventParser{
-			Topic:               aerodrome.SyncTopic0,
-			PossibleProtocolIds: abi.Topic2ProtocolIds[aerodrome.SyncTopic0],
-			ethLogUnpacker: EthLogUnpacker{
-				AbiEvent:      aerodrome.SyncEvent,
 				TopicLen:      1,
 				DataUnpackLen: 2,
 			},
@@ -169,22 +119,5 @@ var (
 				},
 			},
 		},
-
-		pancakev3.SwapTopic0: &SwapEventParserV3{
-			PoolEventParser: PoolEventParser{
-				Topic:               pancakev3.SwapTopic0,
-				PossibleProtocolIds: abi.Topic2ProtocolIds[pancakev3.SwapTopic0],
-				ethLogUnpacker: EthLogUnpacker{
-					AbiEvent:      pancakev3.SwapEvent,
-					TopicLen:      3,
-					DataUnpackLen: 7,
-				},
-			},
-		},
-
-		aerodrome.PoolCreatedTopic0: poolCreatedEventParserAerodrome,
-		aerodrome.BurnTopic0:        burnEventParserAerodrome,
-		aerodrome.SwapTopic0:        swapEventParserAerodrome,
-		aerodrome.SyncTopic0:        syncEventParserAerodrome,
 	}
 )

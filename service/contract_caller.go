@@ -1,7 +1,6 @@
 package service
 
 import (
-	"abchain_scan/abi/aerodrome"
 	uniswapv2 "abchain_scan/abi/uniswap/v2"
 	uniswapv3 "abchain_scan/abi/uniswap/v3"
 	"abchain_scan/config"
@@ -231,34 +230,6 @@ func (c *ContractCaller) CallGetPool(factoryAddress, token0Address, token1Addres
 	}
 
 	return ParseAddress(values[0])
-}
-
-/*
-CallIsPool
-for aerodrome
-*/
-func (c *ContractCaller) CallIsPool(poolAddress *common.Address) (bool, error) {
-	req := BuildCallContractReqDynamic(nil, &aerodrome.FactoryAddress, aerodrome.FactoryAbi, "isPool", poolAddress)
-
-	bytes, err := c.CallContract(req)
-	if err != nil {
-		return false, err
-	}
-
-	if len(bytes) == 0 {
-		return false, ErrOutputEmpty
-	}
-
-	values, unpackErr := AerodromeFactoryUnpacker.Unpack("isPool", bytes, 1)
-	if unpackErr != nil {
-		return false, unpackErr
-	}
-
-	if len(values) != 1 {
-		return false, ErrWrongOutputLength
-	}
-
-	return ParseBool(values[0])
 }
 
 /*

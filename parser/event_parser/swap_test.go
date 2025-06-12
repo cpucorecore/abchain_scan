@@ -67,7 +67,7 @@ func TestSwap_UniswapV2(t *testing.T) {
 	expectAmt0Wei, _ := decimal.NewFromString("28358176223964627199916808")
 	expectAmt1Wei, _ := decimal.NewFromString("5000000000000")
 	eventName := types.Buy
-	program := types.ProtocolNameUniswapV2
+	program := types.ProtocolNameNewSwap
 
 	tc := service.GetTestContext()
 	ethLog := tc.GetEthLog(txHash, logIndex)

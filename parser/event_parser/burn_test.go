@@ -51,7 +51,7 @@ func TestBurn_UniswapV2(t *testing.T) {
 	TxIndex := uint(1051)
 	expectAmt0Wei, _ := decimal.NewFromString("228801199741494110064733")
 	expectAmt1Wei, _ := decimal.NewFromString("5524217866093027057")
-	program := types.ProtocolNameUniswapV2
+	program := types.ProtocolNameNewSwap
 
 	tc := service.GetTestContext()
 	ethLog := tc.GetEthLog(txHash, logIndex)

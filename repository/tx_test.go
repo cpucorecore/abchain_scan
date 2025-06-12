@@ -43,7 +43,7 @@ func TestTxRepository_Create(t *testing.T) {
 		BlockIndex:    1,
 		TxIndex:       1,
 		PairAddress:   "0xa1",
-		Program:       types.ProtocolNameUniswapV2,
+		Program:       types.ProtocolNameNewSwap,
 	}
 	createErr := txRepository.Create(tx)
 	require.NoError(t, createErr)
@@ -72,7 +72,7 @@ func TestTxRepository_CreateDup(t *testing.T) {
 			BlockIndex:    1,
 			TxIndex:       1,
 			PairAddress:   "0xa1",
-			Program:       types.ProtocolNameUniswapV2,
+			Program:       types.ProtocolNameNewSwap,
 		},
 		{
 			TxHash:        "0xa2",
@@ -89,7 +89,7 @@ func TestTxRepository_CreateDup(t *testing.T) {
 			BlockIndex:    2,
 			TxIndex:       2,
 			PairAddress:   "0xa2",
-			Program:       types.ProtocolNameUniswapV2,
+			Program:       types.ProtocolNameNewSwap,
 		},
 		{
 			TxHash:        "0xa3",
@@ -106,7 +106,7 @@ func TestTxRepository_CreateDup(t *testing.T) {
 			BlockIndex:    3,
 			TxIndex:       3,
 			PairAddress:   "0xa3",
-			Program:       types.ProtocolNameUniswapV2,
+			Program:       types.ProtocolNameNewSwap,
 		},
 	}
 

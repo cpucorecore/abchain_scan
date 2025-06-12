@@ -77,7 +77,7 @@ func TestPairCreated_UniswapV2(t *testing.T) {
 		},
 		Block:      30251018,
 		BlockAt:    time.Unix(int64(blockTimestamp), 0),
-		ProtocolId: types.ProtocolIdUniswapV2,
+		ProtocolId: types.ProtocolIdNewSwap,
 		Filtered:   false,
 		FilterCode: 0,
 	}

@@ -16,7 +16,7 @@ type TxPairEvent struct {
 
 func (tpe *TxPairEvent) AddEvent(event Event) {
 	switch event.GetProtocolId() {
-	case ProtocolIdUniswapV2:
+	case ProtocolIdNewSwap:
 		if tpe.UniswapV2 == nil {
 			tpe.UniswapV2 = make([]Event, 0, 10)
 		}
@@ -26,21 +26,6 @@ func (tpe *TxPairEvent) AddEvent(event Event) {
 			tpe.UniswapV3 = make([]Event, 0, 10)
 		}
 		tpe.UniswapV3 = append(tpe.UniswapV3, event)
-	case ProtocolIdPancakeV2:
-		if tpe.PancakeV2 == nil {
-			tpe.PancakeV2 = make([]Event, 0, 10)
-		}
-		tpe.PancakeV2 = append(tpe.PancakeV2, event)
-	case ProtocolIdPancakeV3:
-		if tpe.PancakeV3 == nil {
-			tpe.PancakeV3 = make([]Event, 0, 10)
-		}
-		tpe.PancakeV3 = append(tpe.PancakeV3, event)
-	case ProtocolIdAerodrome:
-		if tpe.Aerodrome == nil {
-			tpe.Aerodrome = make([]Event, 0, 10)
-		}
-		tpe.Aerodrome = append(tpe.Aerodrome, event)
 	}
 }
 

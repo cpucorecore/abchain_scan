@@ -98,15 +98,8 @@ var (
 )
 
 var (
-	pairAerodrome = &TestPair{
-		protocolId:    types.ProtocolIdAerodrome,
-		address:       common.HexToAddress("0x7f670f78B17dEC44d5Ef68a48740b6f8849cc2e6"),
-		tokenReversed: true,
-		token0:        tokenWETH,
-		token1:        tokenAERO,
-	}
 	pairUniswapV2 = &TestPair{
-		protocolId: types.ProtocolIdUniswapV2,
+		protocolId: types.ProtocolIdNewSwap,
 		address:    common.HexToAddress("0x88A43bbDF9D098eEC7bCEda4e2494615dfD9bB9C"),
 		token0:     tokenWETH,
 		token1:     tokenUSDC,
@@ -119,22 +112,8 @@ var (
 		token1:        tokenPEPE,
 		fee:           big.NewInt(10000),
 	}
-	pairPancakeV2 = &TestPair{
-		protocolId: types.ProtocolIdPancakeV2,
-		address:    common.HexToAddress("0xc637ab6D3aB0c55a7812B0b23955bA6E40859447"),
-		token0:     tokenCAKE,
-		token1:     tokenWETH,
-	}
-	pairPancakeV3 = &TestPair{
-		protocolId:    types.ProtocolIdPancakeV3,
-		address:       common.HexToAddress("0x54D281c7cc029a9Dd71F9ACb7487dd95B1EecF5a"),
-		tokenReversed: true,
-		token0:        tokenWETH,
-		token1:        tokenDEGEN,
-		fee:           big.NewInt(500),
-	}
 )
 
 var (
-	possibleProtocolIds = []int{types.ProtocolIdUniswapV2, types.ProtocolIdUniswapV3, types.ProtocolIdPancakeV2, types.ProtocolIdPancakeV3, types.ProtocolIdAerodrome}
+	possibleProtocolIds = []int{types.ProtocolIdNewSwap, types.ProtocolIdUniswapV3}
 )

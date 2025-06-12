@@ -1,8 +1,6 @@
 package service
 
 import (
-	pancakev2 "abchain_scan/abi/pancake/v2"
-	pancakev3 "abchain_scan/abi/pancake/v3"
 	uniswapv2 "abchain_scan/abi/uniswap/v2"
 	uniswapv3 "abchain_scan/abi/uniswap/v3"
 	"abchain_scan/cache"
@@ -337,19 +335,11 @@ func (s *pairService) verifyPair(pair *types.Pair, possibleProtocolIds []int) bo
 
 	for _, protocolId := range possibleProtocolIds {
 		switch protocolId {
-		case types.ProtocolIdUniswapV2:
+		case types.ProtocolIdNewSwap:
 			if s.verifyPairV2(uniswapv2.FactoryAddress, pair) {
 				pair.ProtocolId = protocolId
 				metrics.VerifyPairTotal.WithLabelValues("success").Inc()
 				metrics.VerifyPairOkByProtocol.WithLabelValues("uniswap_v2").Inc()
-				return true
-			}
-
-		case types.ProtocolIdPancakeV2:
-			if s.verifyPairV2(pancakev2.FactoryAddress, pair) {
-				pair.ProtocolId = protocolId
-				metrics.VerifyPairTotal.WithLabelValues("success").Inc()
-				metrics.VerifyPairOkByProtocol.WithLabelValues("pancake_v2").Inc()
 				return true
 			}
 
@@ -358,27 +348,6 @@ func (s *pairService) verifyPair(pair *types.Pair, possibleProtocolIds []int) bo
 				pair.ProtocolId = protocolId
 				metrics.VerifyPairTotal.WithLabelValues("success").Inc()
 				metrics.VerifyPairOkByProtocol.WithLabelValues("uniswap_v3").Inc()
-				return true
-			}
-
-		case types.ProtocolIdPancakeV3:
-			if s.verifyPairV3(pancakev3.FactoryAddress, pair) {
-				pair.ProtocolId = protocolId
-				metrics.VerifyPairTotal.WithLabelValues("success").Inc()
-				metrics.VerifyPairOkByProtocol.WithLabelValues("pancake_v3").Inc()
-				return true
-			}
-
-		case types.ProtocolIdAerodrome:
-			isPool, isPoolErr := s.contractCaller.CallIsPool(&pair.Address)
-			if isPoolErr != nil {
-				continue
-			}
-
-			if isPool {
-				pair.ProtocolId = protocolId
-				metrics.VerifyPairTotal.WithLabelValues("success").Inc()
-				metrics.VerifyPairOkByProtocol.WithLabelValues("aerodrome").Inc()
 				return true
 			}
 		}
