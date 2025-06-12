@@ -1,0 +1,72 @@
+{
+    "log": {
+        "async": false,
+        "async_buffer_size_by_byte": 1000000,
+        "async_flush_interval_by_second": 1
+    },
+    "chain": {
+        "endpoint": "https://base-rpc.publicnode.com",
+        "endpoint_archive": "https://base-rpc.publicnode.com",
+        "ws_endpoint": "wss://base-rpc.publicnode.com"
+    },
+    "redis": {
+        "addr": "localhost:6379",
+        "username": "",
+        "password": ""
+    },
+    "block_getter": {
+        "pool_size": 1,
+        "queue_size": 1,
+        "start_block_number": 48000000,
+        "retry": {
+            "attempts": 10,
+            "delay_ms": 100,
+            "timeout_ms": 5000
+        }
+    },
+    "block_handler": {
+        "pool_size": 1,
+        "queue_size": 1
+    },
+    "enable_sequencer": true,
+    "price_service": {
+        "pool_size": 1
+    },
+    "kafka": {
+        "enabled": false,
+        "brokers": [
+            "localhost:9092"
+        ],
+        "topic": "block",
+        "send_timeout_by_ms": 5000,
+        "max_retry": 10,
+        "retry_interval_by_ms": 100
+    },
+    "contract_caller": {
+        "retry": {
+            "attempts": 10,
+            "delay_ms": 100,
+            "timeout_ms": 3000
+        }
+    },
+    "tx_database": {
+        "enabled": false,
+        "db_datasource": {
+            "host": "localhost",
+            "port": 5432,
+            "username": "postgres",
+            "password": "postgres",
+            "db_name": "test"
+        }
+    },
+    "token_pair_database": {
+        "enabled": false,
+        "db_datasource": {
+            "host": "localhost",
+            "port": 5432,
+            "username": "postgres",
+            "password": "postgres",
+            "db_name": "test"
+        }
+    }
+}

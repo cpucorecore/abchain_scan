@@ -1,0 +1,25 @@
+{
+  "Address": "0xcff245725bf2e1219171dcebbd793ac00fc99b09",
+  "Token0": {
+    "Address": "0x73a3daba0801c4904cbb8d71353be40f574028e2",
+    "Name": "",
+    "Symbol": "GRDY",
+    "Decimals": 18,
+    "TotalSupply": "0"
+  },
+  "Token1": {
+    "Address": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+    "Name": "",
+    "Symbol": "WBNB",
+    "Decimals": 18,
+    "TotalSupply": "0"
+  },
+  "Block": 0,
+  "BlockAt": "0001-01-01T00:00:00Z",
+  "TxIndex": 0,
+  "TxHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "From": "0x0000000000000000000000000000000000000000",
+  "ProtocolId": 2,
+  "Filtered": false,
+  "FilterCode": 0
+}
