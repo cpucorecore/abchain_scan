@@ -32,8 +32,8 @@ type BlockGetter interface {
 
 type blockGetter struct {
 	ctx             context.Context
-	ethClient       *ethclient.Client
 	wsEthClient     *ethclient.Client
+	ethClientPool   EthClientPool
 	inputQueue      chan uint64
 	outputBuffer    chan *types.ParseBlockContext
 	workPool        *ants.Pool
@@ -45,7 +45,7 @@ type blockGetter struct {
 	retryParams     *config.RetryParams
 }
 
-func NewBlockGetter(ethClient *ethclient.Client,
+func NewBlockGetter(
 	wsEthClient *ethclient.Client,
 	cache cache.BlockCache,
 	blockSequencer sequencer.Sequencer,
@@ -56,10 +56,12 @@ func NewBlockGetter(ethClient *ethclient.Client,
 		log.Logger.Fatal("ants pool(BlockGetter) init err", zap.Error(err))
 	}
 
+	ethClientPool_ := NewEthClientPool(config.G.Chain.WsEndpoint, 16)
+
 	return &blockGetter{
 		ctx:             context.Background(),
-		ethClient:       ethClient,
 		wsEthClient:     wsEthClient,
+		ethClientPool:   ethClientPool_,
 		inputQueue:      make(chan uint64, config.G.BlockGetter.QueueSize),
 		outputBuffer:    make(chan *types.ParseBlockContext, 10),
 		workPool:        workPool,
@@ -87,7 +89,7 @@ func (bg *blockGetter) getBlock(blockNumber uint64) (*types.ParseBlockContext, e
 	go func() {
 		defer wg.Done()
 		now := time.Now()
-		block, getBlockErr = bg.ethClient.BlockByNumber(bg.ctx, big.NewInt(int64(blockNumber)))
+		block, getBlockErr = bg.ethClientPool.Get().BlockByNumber(bg.ctx, big.NewInt(int64(blockNumber)))
 		if getBlockErr == nil {
 			duration := time.Since(now)
 			metrics.GetBlockDurationMs.Observe(float64(duration.Milliseconds()))
@@ -97,7 +99,7 @@ func (bg *blockGetter) getBlock(blockNumber uint64) (*types.ParseBlockContext, e
 	go func() {
 		defer wg.Done()
 		now := time.Now()
-		blockReceipts, getReceiptsErr = bg.ethClient.BlockReceipts(bg.ctx, rpc.BlockNumberOrHashWithNumber(rpc.BlockNumber(blockNumber)))
+		blockReceipts, getReceiptsErr = bg.ethClientPool.Get().BlockReceipts(bg.ctx, rpc.BlockNumberOrHashWithNumber(rpc.BlockNumber(blockNumber)))
 		if getReceiptsErr == nil {
 			duration := time.Since(now)
 			metrics.GetBlockReceiptsDurationMs.Observe(float64(duration.Milliseconds()))
@@ -185,7 +187,7 @@ func (bg *blockGetter) GetStartBlockNumber(startBlockNumber uint64) uint64 {
 		return finishedBlock + 1
 	}
 
-	newestBlockNumber, err := bg.ethClient.BlockNumber(bg.ctx)
+	newestBlockNumber, err := bg.wsEthClient.BlockNumber(bg.ctx)
 	if err != nil {
 		log.Logger.Fatal("ethClient.BlockNumber() err", zap.Error(err))
 	}
@@ -236,7 +238,7 @@ func (bg *blockGetter) reconnectWithBackoff() (ethereum.Subscription, <-chan err
 }
 
 func (bg *blockGetter) startSubscribeNewHead() {
-	headerHeight, err := bg.ethClient.BlockNumber(bg.ctx)
+	headerHeight, err := bg.wsEthClient.BlockNumber(bg.ctx)
 	if err != nil {
 		log.Logger.Fatal("HeightBigInt() err", zap.Error(err))
 	}
@@ -283,47 +285,6 @@ func (bg *blockGetter) startSubscribeNewHead() {
 			case <-noBlockTimeout.C:
 				log.Logger.Warn("No new blocks for 10s, reconnect WebSocket")
 				resetConnection()
-			}
-		}
-	}()
-}
-
-func (bg *blockGetter) startSubscribeNewHead2() {
-	headerHeight, err := bg.ethClient.BlockNumber(context.Background())
-	if err != nil {
-		log.Logger.Fatal("HeightBigInt() err", zap.Error(err))
-	}
-	bg.setHeaderHeight(headerHeight)
-
-	sub, subErrChan, subErr := bg.subscribeNewHead()
-	if subErr != nil {
-		log.Logger.Fatal("subscribeNewHead() err", zap.Error(subErr))
-	}
-
-	go func() {
-		for {
-			select {
-			case err = <-subErrChan:
-				log.Logger.Error("receive block err", zap.Error(err))
-				sub.Unsubscribe()
-
-				for {
-					sub, subErrChan, subErr = bg.subscribeNewHead()
-					if subErr != nil {
-						log.Logger.Error("subscribeNewHead() err", zap.Error(subErr))
-						time.Sleep(time.Second * 1)
-						continue
-					}
-
-					log.Logger.Info("subscribeNewHead() success")
-					break
-				}
-
-			case blockHeader := <-bg.blockHeaderChan:
-				log.Logger.Info("receive block header", zap.Any("height", blockHeader.Number))
-				headerHeight = blockHeader.Number.Uint64()
-				metrics.NewestHeight.Set(float64(headerHeight))
-				bg.setHeaderHeight(headerHeight)
 			}
 		}
 	}()

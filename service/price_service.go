@@ -76,7 +76,7 @@ func (ps *priceService) Start(startBlockNumber uint64) {
 
 func (ps *priceService) GetNativeTokenPrice(blockNumber *big.Int) (decimal.Decimal, error) {
 	// mock
-	return decimal.NewFromBigInt(blockNumber, 1), nil
+	return decimal.New(1, 0), nil
 
 	cachePrice, ok := ps.cache.GetPrice(blockNumber)
 	if ok {

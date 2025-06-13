@@ -157,6 +157,6 @@ func init() {
 func init() {
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
-		http.ListenAndServe(fmt.Sprintf("%s:%d", "0.0.0.0", 9100), nil)
+		http.ListenAndServe(fmt.Sprintf("%s:%d", "0.0.0.0", 9101), nil)
 	}()
 }

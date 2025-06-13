@@ -125,7 +125,7 @@ func main() {
 	blockParser.Start(wg)
 
 	sequencerForBlockGetter := sequencer.NewSequencer()
-	blockGetter := block_getter.NewBlockGetter(ethClient, wsEthClient, cache, sequencerForBlockGetter, config.G.BlockGetter.Retry.GetRetryParams())
+	blockGetter := block_getter.NewBlockGetter(wsEthClient, cache, sequencerForBlockGetter, config.G.BlockGetter.Retry.GetRetryParams())
 	startBlockNumber := blockGetter.GetStartBlockNumber(config.G.BlockGetter.StartBlockNumber)
 	if startBlockNumber == 0 {
 		log.Logger.Fatal("start block number is zero")
